@@ -10,7 +10,8 @@
 :root{
   --bg:#0a0e13; --panel:#141b24; --panel2:#1c2531; --line:#2a3646;
   --txt:#e6edf5; --dim:#8fa1b8; --accent:#3ddc84; --accent2:#2bb3ff;
-  --dmg:#ff5a5a; --shield:#2bb3ff; --warn:#ffb020; --dead:#6b2b2b;
+  --dmg:#ff5a5a; --shield:#2bb3ff; --warn:#ffb020; --pin:#ff8c42;
+  --item1:#8b5cf6; --item2:#06b6d4; --item3:#ef4444;
 }
 body{
   background:var(--bg); color:var(--txt);
@@ -19,7 +20,7 @@ body{
 }
 header{
   position:sticky; top:0; z-index:20;
-  background:rgba(10,14,19,.92); backdrop-filter:blur(12px);
+  background:rgba(10,14,19,.94); backdrop-filter:blur(12px);
   border-bottom:1px solid var(--line); padding:10px 12px;
   padding-top:calc(10px + env(safe-area-inset-top));
 }
@@ -36,10 +37,29 @@ header{
 .btn.primary{background:var(--accent);color:#04140a;border-color:var(--accent)}
 .btn.warn{background:var(--warn);color:#1a1000;border-color:var(--warn)}
 .btn.ghost{background:transparent}
+.btn.sm{padding:5px 9px;font-size:12px}
+
+/* Command dice strip */
+.cmdbar{
+  display:flex;align-items:center;gap:8px;margin-top:8px;
+  background:var(--panel2);border:1px solid var(--line);border-radius:9px;
+  padding:6px 10px;font-size:12px;
+}
+.cmdbar .lbl{color:var(--dim);text-transform:uppercase;letter-spacing:.5px;font-size:10px}
+.cmdbar .val{font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.cmdbar .spend{display:flex;gap:4px;margin-left:auto}
+.die{
+  width:26px;height:26px;border-radius:6px;border:1px solid var(--line);
+  background:var(--panel);color:var(--txt);font-size:15px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:.12s;user-select:none;
+}
+.die:active{transform:scale(.9)}
+.die.spent{opacity:.25;text-decoration:line-through}
 .progress{height:3px;background:var(--line);border-radius:2px;margin-top:8px;overflow:hidden}
 .progress i{display:block;height:100%;background:var(--accent);transition:.3s}
 
-main{padding:12px;display:flex;flex-direction:column;gap:10px;max-width:760px;margin:0 auto}
+main{padding:12px;display:flex;flex-direction:column;gap:12px;max-width:760px;margin:0 auto}
 .card{
   background:var(--panel); border:1px solid var(--line); border-radius:14px;
   padding:12px; transition:.2s;
@@ -47,54 +67,115 @@ main{padding:12px;display:flex;flex-direction:column;gap:10px;max-width:760px;ma
 .card.activated{opacity:.5;background:#0f141b}
 .card.down{border-color:var(--dmg);background:#1a1013}
 .card.down .uname{text-decoration:line-through;color:var(--dmg)}
+.card.offboard{border-style:dashed;opacity:.65}
+.card.pinned{border-color:var(--pin)}
 
 .crow{display:flex;align-items:center;gap:10px}
 .uname{font-weight:700;font-size:16px}
 .urole{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
 .uwrap{flex:1;min-width:0}
 
-.stats{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.pinbanner{
+  background:#3a1e0a;border:1px solid var(--pin);color:var(--pin);
+  border-radius:7px;padding:5px 9px;font-size:11.5px;margin-top:8px;
+  display:flex;align-items:center;gap:6px;
+}
+.pinbanner b{font-size:10px;letter-spacing:.5px}
+
+/* Stat pills */
+.stats{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
 .stat{
   background:var(--panel2); border:1px solid var(--line); border-radius:7px;
-  padding:3px 8px; font-size:11px; color:var(--dim);
+  padding:4px 9px; font-size:11px; color:var(--dim); min-width:44px;
+  text-align:center;
 }
-.stat b{color:var(--txt);font-size:12px;margin-left:3px}
+.stat b{display:block;color:var(--txt);font-size:14px;font-weight:700;margin-top:1px}
+.stat.def b{color:var(--shield)}
 
-.track{display:flex;align-items:center;gap:8px;margin-top:9px}
-.tlabel{width:56px;font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
-.tval{font-weight:700;font-variant-numeric:tabular-nums;min-width:52px;text-align:center;font-size:14px}
-.tval.hp{color:var(--dmg)} .tval.sp{color:var(--shield)}
-.rnd{
-  width:32px;height:32px;border-radius:50%;border:1px solid var(--line);
-  background:var(--panel2); color:var(--txt); font-size:19px; line-height:1;
-  cursor:pointer; display:flex;align-items:center;justify-content:center;
-  transition:.12s; flex-shrink:0;
+/* Wound & shield tracks */
+.track{display:flex;align-items:center;gap:8px;margin-top:8px}
+.tlabel{width:58px;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+.wpips{display:flex;gap:3px}
+.wpip{
+  width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);
+  background:#0a0e13;cursor:pointer;transition:.12s;
 }
-.rnd:active{transform:scale(.88);background:var(--accent);color:#04140a}
-.rnd:disabled{opacity:.25;cursor:default}
-.bar{flex:1;height:7px;background:#0a0e13;border-radius:4px;overflow:hidden}
-.bar i{display:block;height:100%;transition:.25s}
-.bar.hp i{background:linear-gradient(90deg,#c0392b,var(--dmg))}
-.bar.sp i{background:linear-gradient(90deg,#1565c0,var(--shield))}
+.wpip.filled{background:var(--dmg);border-color:var(--dmg);box-shadow:0 0 6px rgba(255,90,90,.5)}
+.wpip.filled.sh{background:var(--shield);border-color:var(--shield);box-shadow:0 0 6px rgba(43,179,255,.5)}
+.wpip:active{transform:scale(.85)}
+.wpip.dead{background:#333;border-color:#333}
+.tval{font-weight:700;font-variant-numeric:tabular-nums;font-size:13px;color:var(--dim);margin-left:auto}
 
+/* Chips */
 .chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
 .chip{
   font-size:10.5px;padding:3px 8px;border-radius:20px;
   background:var(--panel2);border:1px solid var(--line);color:var(--dim);
 }
-.chip.eq{color:var(--accent);border-color:#1e4a33;background:#0d1f16}
-.chip.st{color:var(--warn);border-color:#4a3a1e;background:#1f1a0d}
+.chip.kw{color:var(--accent2);border-color:#1e3a4a;background:#0d1a24}
+.chip.pin{color:var(--pin);border-color:#4a2e1a;background:#1f1409}
+.chip.tac{color:var(--warn);border-color:#4a3a1e;background:#1f1a0d}
+
+/* Weapon block */
+.wblock{
+  background:#0d1219;border:1px solid var(--line);border-radius:9px;
+  padding:8px 10px;margin-top:8px;font-size:12px;
+}
+.wblock .wname{
+  font-weight:700;font-size:13px;color:var(--accent);
+  display:flex;align-items:center;gap:6px;
+}
+.wblock .wtag{
+  font-size:9.5px;padding:1px 6px;border-radius:10px;
+  background:#1a2a1f;color:var(--accent);border:1px solid #1e4a33;
+  text-transform:uppercase;letter-spacing:.4px;font-weight:700;
+}
+.wblock .wtag.pick{background:#1a2030;color:var(--accent2);border-color:#1e3a4a}
+.wblock .wline{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:5px;
+  color:var(--dim);font-size:11px;
+}
+.wblock .wline span b{color:var(--txt);font-weight:700}
+.wblock .wkw{
+  display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;
+}
+.wblock .wkw i{
+  font-style:normal;font-size:10px;padding:2px 6px;border-radius:5px;
+  background:var(--panel2);border:1px solid var(--line);color:var(--dim);
+}
+.wblock .wkw i.strong{color:var(--dmg);border-color:#4a2020;background:#1f0d0d}
+
+/* Item block */
+.iblock{
+  display:flex;align-items:center;gap:8px;background:var(--panel2);
+  border:1px solid var(--line);border-radius:9px;padding:8px 10px;
+  margin-top:6px;font-size:12.5px;
+}
+.iblock .itype{
+  font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:6px;
+  letter-spacing:.4px;
+}
+.itype.I{background:#241a3a;color:var(--item1);border:1px solid var(--item1)}
+.itype.II{background:#0a2830;color:var(--item2);border:1px solid var(--item2)}
+.itype.III{background:#2a1010;color:var(--item3);border:1px solid var(--item3)}
+.iblock .iname{flex:1;font-weight:600}
+.iblock .iuses{
+  font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums;
+}
+.iblock .idrop{
+  color:var(--dmg);cursor:pointer;font-size:16px;padding:0 4px;line-height:1;
+}
 
 /* Modal */
 .ov{
-  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;
+  position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;
   display:none;align-items:flex-end;justify-content:center;
   backdrop-filter:blur(3px);
 }
 .ov.on{display:flex}
 .sheet{
   background:var(--panel);border-radius:18px 18px 0 0;width:100%;max-width:760px;
-  max-height:88vh;overflow-y:auto;padding:16px;
+  max-height:90vh;overflow-y:auto;padding:16px;
   padding-bottom:calc(24px + env(safe-area-inset-bottom));
   border-top:1px solid var(--line); animation:up .22s ease;
 }
@@ -104,8 +185,11 @@ main{padding:12px;display:flex;flex-direction:column;gap:10px;max-width:760px;ma
 .sheet h3{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin:18px 0 8px}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
 .gcell{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px;text-align:center}
-.gcell .k{font-size:10px;color:var(--dim);text-transform:uppercase}
-.gcell .v{font-size:19px;font-weight:700;margin-top:2px}
+.gcell .k{font-size:9.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px}
+.gcell .v{font-size:18px;font-weight:700;margin-top:2px}
+.gcell input{width:100%;text-align:center;background:none;border:none;color:var(--txt);font-size:18px;font-weight:700;font-family:inherit}
+.gcell input:focus{outline:none}
+
 .list{display:flex;flex-direction:column;gap:6px}
 .li{
   display:flex;align-items:center;gap:8px;background:var(--panel2);
@@ -113,11 +197,19 @@ main{padding:12px;display:flex;flex-direction:column;gap:10px;max-width:760px;ma
 }
 .li .x{margin-left:auto;color:var(--dmg);cursor:pointer;font-size:17px;padding:0 4px}
 .addrow{display:flex;gap:7px;margin-top:8px}
-.addrow input{
+.addrow input,.addrow select{
   flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--txt);
   border-radius:9px;padding:10px 12px;font-size:14px;font-family:inherit;
 }
-.addrow input:focus{outline:none;border-color:var(--accent2)}
+.addrow select{flex:0 0 84px}
+.addrow input:focus,.addrow select:focus{outline:none;border-color:var(--accent2)}
+
+.wform{display:flex;flex-direction:column;gap:7px;margin-top:8px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px}
+.wform .frow{display:flex;gap:6px}
+.wform input,.wform select{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:7px;padding:8px 10px;font-size:13px;font-family:inherit;min-width:0}
+.wform input:focus,.wform select:focus{outline:none;border-color:var(--accent2)}
+.wform .frow input{flex:1}
+
 textarea{
   width:100%;height:180px;background:#0a0e13;border:1px solid var(--line);
   color:var(--txt);border-radius:11px;padding:12px;font:12px/1.5 ui-monospace,Menlo,monospace;
@@ -140,6 +232,8 @@ textarea:focus{outline:none;border-color:var(--accent2)}
 }
 .toast.on{opacity:1;transform:translateX(-50%)}
 .empty{text-align:center;color:var(--dim);padding:50px 20px;font-size:14px;line-height:1.7}
+
+.sec{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-top:14px;margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -148,11 +242,18 @@ textarea:focus{outline:none;border-color:var(--accent2)}
   <div class="hrow">
     <div class="uwrap">
       <div class="sqname" id="sqName">Squad</div>
-      <div class="round" id="roundLbl">Round 1 &middot; 0/0 activated</div>
+      <div class="round" id="roundLbl">Round 1 · 0/0 activated</div>
     </div>
-    <button class="btn ghost" id="bImport" title="Import JSON">⬆</button>
-    <button class="btn ghost" id="bReset" title="Reset all">↺</button>
-    <button class="btn primary" id="bNext">Next Round</button>
+    <button class="btn ghost sm" id="bImport" title="Import JSON">⬆</button>
+    <button class="btn ghost sm" id="bReset" title="Reset all">↺</button>
+    <button class="btn primary sm" id="bNext">Next Round</button>
+  </div>
+  <div class="cmdbar">
+    <span class="lbl">Cmd</span>
+    <span class="val" id="cmdRemaining">2</span>
+    <span style="color:var(--dim);font-size:11px" id="cmdDetail">/ 2</span>
+    <div class="spend" id="cmdDice"></div>
+    <button class="btn ghost sm" id="cmdAdd" title="Add command die">+</button>
   </div>
   <div class="progress"><i id="progBar" style="width:0%"></i></div>
 </header>
@@ -161,12 +262,8 @@ textarea:focus{outline:none;border-color:var(--accent2)}
 
 <button class="fab" id="bAdd">+ Add Unit</button>
 
-<!-- Unit detail sheet -->
-<div class="ov" id="ovUnit">
-  <div class="sheet" id="sheetUnit"></div>
-</div>
+<div class="ov" id="ovUnit"><div class="sheet" id="sheetUnit"></div></div>
 
-<!-- Import sheet -->
 <div class="ov" id="ovImport">
   <div class="sheet">
     <div class="grab"></div>
@@ -181,41 +278,56 @@ textarea:focus{outline:none;border-color:var(--accent2)}
       <button class="btn primary" style="flex:2" id="impGo">Load Squad</button>
     </div>
     <h3>Schema</h3>
-    <pre style="font:11px/1.6 ui-monospace,monospace;color:var(--dim);white-space:pre-wrap">{
+    <pre style="font:10.5px/1.5 ui-monospace,monospace;color:var(--dim);white-space:pre-wrap">{
   "squadName": "Blue Team",
-  "faction": "UNSC",
+  "commandDiceBase": 2,
   "units": [{
-    "id": "spartan-117",
     "name": "Spartan-117",
     "role": "Leader",
-    "maxHealth": 3,
+    "keywords": ["Spartan","Shielded","Tactician 1"],
+    "maxWounds": 3,
     "maxShields": 2,
-    "move": 6, "shoot": 3, "melee": 3, "defence": 4,
-    "weapons": ["MA5 Assault Rifle"],
-    "equipment": ["Frag Grenade"],
-    "keywords": ["Spartan", "Shielded"],
-    "notes": ""
+    "speed1": 3, "speed2": 6,
+    "shoot": 3, "fight": 3, "survive": 4,
+    "weapons": [{
+      "name": "MA5 Assault Rifle",
+      "range": "R4", "ap": 0, "dice": 3,
+      "keywords": ["Weight of fire (1)"],
+      "pickup": false
+    }],
+    "items": [{
+      "name": "Frag Grenade",
+      "type": "III",
+      "uses": 1
+    }]
   }]
 }</pre>
   </div>
 </div>
 
-<!-- Add unit sheet -->
 <div class="ov" id="ovAdd">
   <div class="sheet">
     <div class="grab"></div>
     <h2>Add Unit</h2>
-    <h3>Name</h3>
-    <div class="addrow"><input id="nuName" placeholder="e.g. Spartan-B312"></div>
-    <h3>Role</h3>
-    <div class="addrow"><input id="nuRole" placeholder="e.g. Rifleman"></div>
+    <h3>Identity</h3>
+    <div class="addrow"><input id="nuName" placeholder="Name"></div>
+    <div class="addrow" style="margin-top:6px"><input id="nuRole" placeholder="Role"></div>
+    <div class="addrow" style="margin-top:6px"><input id="nuKw" placeholder="Keywords (comma separated)"></div>
+
     <h3>Stats</h3>
     <div class="grid">
-      <div class="gcell"><div class="k">HP</div><input class="addrow" style="width:100%;text-align:center;background:none;border:none;color:var(--txt);font-size:19px;font-weight:700" id="nuHp" type="number" value="3" min="1"></div>
-      <div class="gcell"><div class="k">Shield</div><input style="width:100%;text-align:center;background:none;border:none;color:var(--txt);font-size:19px;font-weight:700" id="nuSh" type="number" value="0" min="0"></div>
-      <div class="gcell"><div class="k">Move</div><input style="width:100%;text-align:center;background:none;border:none;color:var(--txt);font-size:19px;font-weight:700" id="nuMv" type="number" value="5" min="0"></div>
-      <div class="gcell"><div class="k">Shoot</div><input style="width:100%;text-align:center;background:none;border:none;color:var(--txt);font-size:19px;font-weight:700" id="nuSh2" type="number" value="3" min="0"></div>
+      <div class="gcell"><div class="k">Wounds</div><input id="nuW" type="number" value="3" min="1"></div>
+      <div class="gcell"><div class="k">Shields</div><input id="nuSh" type="number" value="0" min="0"></div>
+      <div class="gcell"><div class="k">Spd 1</div><input id="nuS1" type="number" value="3" min="0"></div>
+      <div class="gcell"><div class="k">Spd 2</div><input id="nuS2" type="number" value="6" min="0"></div>
     </div>
+    <div class="grid" style="margin-top:7px">
+      <div class="gcell"><div class="k">Shoot</div><input id="nuSh2" type="number" value="3" min="0"></div>
+      <div class="gcell"><div class="k">Fight</div><input id="nuF" type="number" value="3" min="0"></div>
+      <div class="gcell"><div class="k">Survive</div><input id="nuSv" type="number" value="4" min="0"></div>
+      <div class="gcell"><div class="k">—</div><div class="v" style="color:var(--dim)">—</div></div>
+    </div>
+
     <div style="display:flex;gap:8px;margin-top:16px">
       <button class="btn ghost" style="flex:1" id="addCancel">Cancel</button>
       <button class="btn primary" style="flex:2" id="addGo">Add Unit</button>
@@ -227,405 +339,664 @@ textarea:focus{outline:none;border-color:var(--accent2)}
 
 <script>
 /* ══════════════════ STATE ══════════════════ */
-const LS_KEY = 'flashpoint_state_v1';
-let G = null;              // game state
-const STATUSES = ['Stunned','Pinned','Wounded','Overwatch','Out of Action','Hidden','Suppressed'];
+const LS_KEY = 'flashpoint_state_v3';
+let G = null;
 
-function blankGame(name = 'New Squad') {
-  return { squadName: name, round: 1, units: [] };
+const STATUSES = ['Pinned','Crouched','Injured','Off Board'];
+
+function blankGame(name='New Squad'){
+  return {
+    squadName: name,
+    round: 1,
+    commandDiceBase: 2,
+    commandDice: [],    // array of {id, spent}
+    carriedOver: 0,
+    units: []
+  };
 }
+const num=(v,d)=>(typeof v==='number'&&isFinite(v))?v:d;
+const arr=v=>Array.isArray(v)?v.slice():[];
+const uid=()=>'u'+Math.random().toString(36).slice(2,9);
 
-function load() {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    if (raw) { G = JSON.parse(raw); normalize(); return; }
-  } catch (e) {}
-  G = blankGame();
-  seedDemo();
-}
-
-function normalize() {
-  G.round = G.round || 1;
-  G.units = (G.units || []).map(u => ({
-    id: u.id || uid(),
-    name: u.name || 'Unnamed',
-    role: u.role || '',
-    maxHealth: num(u.maxHealth, 1),
-    maxShields: num(u.maxShields, 0),
-    health: num(u.health, num(u.maxHealth, 1)),
-    shields: num(u.shields, num(u.maxShields, 0)),
-    activated: !!u.activated,
-    move: u.move ?? null, shoot: u.shoot ?? null,
-    melee: u.melee ?? null, defence: u.defence ?? null,
-    weapons: arr(u.weapons),
-    equipment: arr(u.equipment),
-    picked: arr(u.picked),
-    statuses: arr(u.statuses),
-    keywords: arr(u.keywords),
-    notes: u.notes || ''
+function normalize(){
+  G.round=num(G.round,1);
+  G.commandDiceBase=num(G.commandDiceBase,2);
+  G.carriedOver=num(G.carriedOver,0);
+  if(!Array.isArray(G.commandDice)) G.commandDice=[];
+  G.units=(G.units||[]).map(u=>({
+    id:u.id||uid(),
+    name:u.name||'Unnamed',
+    role:u.role||'',
+    keywords:arr(u.keywords),
+    maxWounds:num(u.maxWounds,3),
+    wounds:num(u.wounds,0),
+    maxShields:num(u.maxShields,0),
+    shields:num(u.shields,num(u.maxShields,0)),
+    speed1:u.speed1??null,
+    speed2:u.speed2??null,
+    shoot:u.shoot??null,
+    fight:u.fight??null,
+    survive:u.survive??null,
+    weapons:arr(u.weapons).map(w=>normWeapon(w)),
+    items:arr(u.items).map(i=>normItem(i)),
+    picked:arr(u.picked).map(i=>normItem(i)),
+    statuses:arr(u.statuses),
+    activated:!!u.activated,
+    offBoard:!!u.offBoard,
+    notes:u.notes||''
   }));
 }
-const num = (v, d) => (typeof v === 'number' && isFinite(v)) ? v : d;
-const arr = v => Array.isArray(v) ? v.slice() : [];
-const uid = () => 'u' + Math.random().toString(36).slice(2, 9);
+function normWeapon(w){
+  if(typeof w==='string') return {name:w,range:'',ap:0,dice:null,keywords:[],pickup:false};
+  return {
+    name:w.name||'Weapon',
+    range:w.range||'',
+    ap:num(w.ap,0),
+    dice:w.dice??null,
+    keywords:arr(w.keywords),
+    pickup:!!w.pickup
+  };
+}
+function normItem(i){
+  if(typeof i==='string') return {name:i,type:'II',uses:1,maxUses:1};
+  return {
+    name:i.name||'Item',
+    type:(i.type||'II').toUpperCase(),
+    uses:num(i.uses,i.maxUses??1),
+    maxUses:num(i.maxUses,i.uses??1)
+  };
+}
 
-function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(G)); } catch (e) {} }
+function load(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(raw){G=JSON.parse(raw);normalize();refreshCommandDice();return;}
+  }catch(e){}
+  G=blankGame();
+  seedDemo();
+}
+function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(G))}catch(e){}}
+const U=id=>G.units.find(u=>u.id===id);
+
+/* ══════════════════ COMMAND DICE ══════════════════ */
+function tacticianTotal(){
+  return G.units.reduce((sum,u)=>{
+    if(!u.keywords)return sum;
+    for(const k of u.keywords){
+      const m=String(k).match(/tactician\s*(\d+)/i);
+      if(m) sum+=parseInt(m[1],10);
+    }
+    return sum;
+  },0);
+}
+function refreshCommandDice(){
+  // Called at start of round: build dice pool
+  const total = G.commandDiceBase + tacticianTotal();
+  const carried = Math.min(G.carriedOver, tacticianTotal());
+  const dice=[];
+  for(let i=0;i<total;i++) dice.push({id:'d'+i,spent:i<carried});
+  G.commandDice=dice;
+}
+function spendDie(idx){
+  if(!G.commandDice[idx])return;
+  G.commandDice[idx].spent=!G.commandDice[idx].spent;
+  commit();
+}
+function addDie(){
+  G.commandDice.push({id:'d'+Date.now(),spent:false});
+  commit();
+}
+function cmdRemaining(){
+  return G.commandDice.filter(d=>!d.spent).length;
+}
 
 /* ══════════════════ ACTIONS ══════════════════ */
-const U = id => G.units.find(u => u.id === id);
-
-function toggleAct(id) {
-  const u = U(id); if (!u) return;
-  u.activated = !u.activated; commit();
-}
-
-function damage(id, n) {
-  const u = U(id); if (!u) return;
-  let d = n;
-  if (u.shields > 0) {                       // shields absorb first
-    const absorbed = Math.min(u.shields, d);
-    u.shields -= absorbed; d -= absorbed;
-  }
-  u.health = Math.max(0, u.health - d);
+function toggleAct(id){const u=U(id);if(!u)return;u.activated=!u.activated;commit();}
+function toggleStatus(id,s){
+  const u=U(id);if(!u)return;
+  const i=u.statuses.indexOf(s);
+  i>=0?u.statuses.splice(i,1):u.statuses.push(s);
+  if(s==='Off Board') u.offBoard=u.statuses.includes('Off Board');
   commit();
 }
-
-function heal(id, n) {
-  const u = U(id); if (!u) return;
-  u.health = Math.min(u.maxHealth, u.health + n);
+function setWound(id,n){
+  const u=U(id);if(!u)return;
+  u.wounds=Math.max(0,Math.min(u.maxWounds,n));
   commit();
 }
-
-function shiftShield(id, n) {
-  const u = U(id); if (!u) return;
-  u.shields = Math.max(0, Math.min(u.maxShields, u.shields + n));
+function setShield(id,n){
+  const u=U(id);if(!u)return;
+  u.shields=Math.max(0,Math.min(u.maxShields,n));
   commit();
 }
-
-function toggleStatus(id, s) {
-  const u = U(id); if (!u) return;
-  const i = u.statuses.indexOf(s);
-  i >= 0 ? u.statuses.splice(i, 1) : u.statuses.push(s);
-  commit();
+function useItem(id,which,index){
+  const u=U(id);if(!u)return;
+  const list=which==='picked'?u.picked:u.items;
+  const it=list[index];if(!it)return;
+  if(it.uses>0){it.uses--;commit();renderSheet(id);}
 }
-
-function addPick(id, item) {
-  const u = U(id); if (!u || !item.trim()) return;
-  if (!u.picked.includes(item.trim())) u.picked.push(item.trim());
-  commit(); renderSheet(id);
+function dropItem(id,which,index){
+  const u=U(id);if(!u)return;
+  if(which==='picked') u.picked.splice(index,1);
+  else u.items.splice(index,1);
+  commit();renderSheet(id);
 }
-
-function dropPick(id, item) {
-  const u = U(id); if (!u) return;
-  u.picked = u.picked.filter(x => x !== item);
-  commit(); renderSheet(id);
-}
-
-function nextRound() {
+function nextRound(){
+  // End phase: carry over up to (n) unspent
+  const n=tacticianTotal();
+  const unspent=G.commandDice.filter(d=>!d.spent).length;
+  G.carriedOver=Math.min(n,unspent);
   G.round++;
-  G.units.forEach(u => { u.activated = false; });
+  G.units.forEach(u=>u.activated=false);
+  refreshCommandDice();
   commit();
-  toast('Round ' + G.round);
+  toast(`Round ${G.round} · ${G.carriedOver} carried over`);
 }
-
-function resetAll() {
-  if (!confirm('Reset the whole game? Health, shields and activations restore.')) return;
-  G.round = 1;
-  G.units.forEach(u => {
-    u.health = u.maxHealth; u.shields = u.maxShields;
-    u.activated = false; u.statuses = []; u.picked = [];
+function resetAll(){
+  if(!confirm('Reset the whole game? Wounds, shields, uses and activations restore.'))return;
+  G.round=1;G.carriedOver=0;
+  G.units.forEach(u=>{
+    u.wounds=0;u.shields=u.maxShields;u.activated=false;
+    u.statuses=[];u.picked=[];
+    u.items.forEach(i=>i.uses=i.maxUses);
   });
+  refreshCommandDice();
   commit();
 }
 
-function commit() { save(); render(); }
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('on');
-  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('on'), 1600);
+function commit(){save();render();}
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('on');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),1600);
 }
 
 /* ══════════════════ RENDER ══════════════════ */
-function render() {
-  document.getElementById('sqName').textContent = G.squadName || 'Squad';
-  const act = G.units.filter(u => u.activated).length;
-  document.getElementById('roundLbl').textContent =
+function render(){
+  document.getElementById('sqName').textContent=G.squadName||'Squad';
+  const act=G.units.filter(u=>u.activated).length;
+  document.getElementById('roundLbl').textContent=
     `Round ${G.round} · ${act}/${G.units.length} activated`;
-  document.getElementById('progBar').style.width =
-    G.units.length ? (act / G.units.length * 100) + '%' : '0%';
+  document.getElementById('progBar').style.width=
+    G.units.length?(act/G.units.length*100)+'%':'0%';
 
-  const b = document.getElementById('board');
-  if (!G.units.length) {
-    b.innerHTML = `<div class="empty">No units yet.<br>Tap <b>Import JSON</b> to load your squad,<br>or <b>+ Add Unit</b> to start manually.</div>`;
+  const rem=cmdRemaining();
+  const tot=G.commandDice.length;
+  document.getElementById('cmdRemaining').textContent=rem;
+  document.getElementById('cmdDetail').textContent=
+    `/ ${tot}${G.carriedOver?' · ${G.carriedOver} carried':''}${tacticianTotal()?' · Tac '+tacticianTotal():''}`;
+
+  const cd=document.getElementById('cmdDice');
+  cd.innerHTML=G.commandDice.map((d,i)=>
+    `<div class="die ${d.spent?'spent':''}" data-die="${i}">◆</div>`
+  ).join('');
+  cd.querySelectorAll('[data-die]').forEach(el=>
+    el.onclick=()=>spendDie(+el.dataset.die));
+  document.getElementById('cmdAdd').onclick=addDie;
+
+  const b=document.getElementById('board');
+  if(!G.units.length){
+    b.innerHTML=`<div class="empty">No units yet.<br>Tap <b>Import JSON</b> to load your squad,<br>or <b>+ Add Unit</b> to start manually.</div>`;
     return;
   }
-  b.innerHTML = G.units.map(cardHTML).join('');
-  b.querySelectorAll('[data-act]').forEach(el =>
-    el.onclick = () => toggleAct(el.dataset.act));
-  b.querySelectorAll('[data-dmg]').forEach(el =>
-    el.onclick = () => damage(el.dataset.dmg, +el.dataset.n));
-  b.querySelectorAll('[data-heal]').forEach(el =>
-    el.onclick = () => heal(el.dataset.heal, +el.dataset.n));
-  b.querySelectorAll('[data-sh]').forEach(el =>
-    el.onclick = () => shiftShield(el.dataset.sh, +el.dataset.n));
-  b.querySelectorAll('[data-open]').forEach(el =>
-    el.onclick = e => { if (e.target.closest('button')) return; openSheet(el.dataset.open); });
+  b.innerHTML=G.units.map(cardHTML).join('');
+  b.querySelectorAll('[data-act]').forEach(el=>el.onclick=()=>toggleAct(el.dataset.act));
+  b.querySelectorAll('[data-wound]').forEach(el=>el.onclick=()=>setWound(el.dataset.wound,+el.dataset.n));
+  b.querySelectorAll('[data-shield]').forEach(el=>el.onclick=()=>setShield(el.dataset.shield,+el.dataset.n));
+  b.querySelectorAll('[data-open]').forEach(el=>
+    el.onclick=e=>{if(e.target.closest('button'))return;openSheet(el.dataset.open);});
 }
 
-function cardHTML(u) {
-  const down = u.health <= 0;
-  const cls = ['card', u.activated ? 'activated' : '', down ? 'down' : ''].join(' ');
-  const hpPct = u.maxHealth ? u.health / u.maxHealth * 100 : 0;
-  const shPct = u.maxShields ? u.shields / u.maxShields * 100 : 0;
+function cardHTML(u){
+  const down=u.wounds>=u.maxWounds;
+  const pinned=u.statuses.includes('Pinned');
+  const cls=['card',
+    u.activated?'activated':'',
+    down?'down':'',
+    u.offBoard?'offboard':'',
+    pinned?'pinned':''
+  ].join(' ');
+  const pct=u.maxWounds?u.wounds/u.maxWounds*100:0;
 
-  const stats = [
-    u.move != null && ['MOV', u.move],
-    u.shoot != null && ['SHT', u.shoot],
-    u.melee != null && ['MEL', u.melee],
-    u.defence != null && ['DEF', u.defence]
-  ].filter(Boolean).map(([k, v]) => `<span class="stat">${k}<b>${v}</b></span>`).join('');
+  // Stats row
+  const stats=[];
+  if(u.speed1!=null) stats.push(['SPD 1',u.speed1]);
+  if(u.speed2!=null) stats.push(['SPD 2',u.speed2]);
+  if(u.shoot!=null) stats.push(['SHOOT',u.shoot]);
+  if(u.fight!=null) stats.push(['FIGHT',u.fight]);
+  if(u.survive!=null) stats.push(['SURV',u.survive]);
+  const statsHTML=stats.map(([k,v])=>`<div class="stat">${k}<b>${v}</b></div>`).join('');
 
-  const eq = [...u.equipment, ...u.picked];
-  const chips = eq.map(e => `<span class="chip eq">${esc(e)}</span>`).join('')
-    + u.statuses.map(s => `<span class="chip st">${esc(s)}</span>`).join('');
+  // Keywords
+  const kwHTML=(u.keywords||[]).map(k=>{
+    const isTac=/tactician/i.test(k);
+    return `<span class="chip ${isTac?'tac':'kw'}">${esc(k)}</span>`;
+  }).join('');
+
+  // Wound pips
+  const woundPips=[];
+  for(let i=0;i<u.maxWounds;i++){
+    woundPips.push(`<div class="wpip ${i<u.wounds?'filled':''}" data-wound="${u.id}" data-n="${i+1}" title="Set wounds to ${i+1}"></div>`);
+  }
+  // Shield pips
+  const shieldPips=[];
+  for(let i=0;i<u.maxShields;i++){
+    shieldPips.push(`<div class="wpip ${i<u.shields?'filled sh':''}" data-shield="${u.id}" data-n="${i+1}" title="Set shields to ${i+1}"></div>`);
+  }
+
+  // Weapons block
+  const weaponBlocks=(u.weapons||[]).map(w=>weaponBlockHTML(w,false)).join('');
+
+  // Starting items
+  const itemBlocks=(u.items||[]).map((it,i)=>itemBlockHTML(it,'items',i,u.id)).join('');
+
+  // Picked items
+  const pickedBlocks=(u.picked||[]).map((it,i)=>itemBlockHTML(it,'picked',i,u.id)).join('');
+
+  // Status chips
+  const statusHTML=(u.statuses||[]).map(s=>
+    `<span class="chip ${s==='Pinned'?'pin':''}">${esc(s)}</span>`
+  ).join('');
 
   return `
   <div class="${cls}" data-open="${u.id}">
     <div class="crow">
       <div class="uwrap">
         <div class="uname">${esc(u.name)}</div>
-        ${u.role ? `<div class="urole">${esc(u.role)}</div>` : ''}
+        ${u.role?`<div class="urole">${esc(u.role)}</div>`:''}
       </div>
-      <button class="btn ${u.activated ? '' : 'primary'}" data-act="${u.id}">
-        ${u.activated ? '✓ Done' : '▶ Ready'}
+      <button class="btn ${u.activated?'':'primary'} sm" data-act="${u.id}">
+        ${u.activated?'✓ Done':'▶ Ready'}
       </button>
     </div>
 
-    ${stats ? `<div class="stats">${stats}</div>` : ''}
+    ${pinned?`<div class="pinbanner"><b>PINNED</b> · must Stand Up first · no Shoot/Sprint if enemy in cube</div>`:''}
+
+    ${statsHTML?`<div class="stats">${statsHTML}</div>`:''}
 
     <div class="track">
-      <span class="tlabel">Health</span>
-      <button class="rnd" data-dmg="${u.id}" data-n="1" ${u.health <= 0 ? 'disabled' : ''}>−</button>
-      <span class="tval hp">${u.health}/${u.maxHealth}</span>
-      <div class="bar hp"><i style="width:${hpPct}%"></i></div>
-      <button class="rnd" data-heal="${u.id}" data-n="1" ${u.health >= u.maxHealth ? 'disabled' : ''}>+</button>
+      <span class="tlabel">Wounds</span>
+      <div class="wpips">${woundPips.join('')}</div>
+      <span class="tval">${u.wounds}/${u.maxWounds}</span>
     </div>
 
-    ${u.maxShields > 0 ? `
+    ${u.maxShields>0?`
     <div class="track">
-      <span class="tlabel">Shield</span>
-      <button class="rnd" data-sh="${u.id}" data-n="-1" ${u.shields <= 0 ? 'disabled' : ''}>−</button>
-      <span class="tval sp">${u.shields}/${u.maxShields}</span>
-      <div class="bar sp"><i style="width:${shPct}%"></i></div>
-      <button class="rnd" data-sh="${u.id}" data-n="1" ${u.shields >= u.maxShields ? 'disabled' : ''}>+</button>
-    </div>` : ''}
+      <span class="tlabel">Shields</span>
+      <div class="wpips">${shieldPips.join('')}</div>
+      <span class="tval">${u.shields}/${u.maxShields}</span>
+    </div>`:''}
 
-    ${chips ? `<div class="chips">${chips}</div>` : ''}
+    ${kwHTML||statusHTML?`<div class="chips">${kwHTML}${statusHTML}</div>`:''}
+
+    ${weaponBlocks}
+    ${itemBlocks}
+    ${pickedBlocks}
   </div>`;
 }
 
-/* ══════════════════ DETAIL SHEET ══════════════════ */
-let openId = null;
-function openSheet(id) {
-  openId = id;
-  document.getElementById('ovUnit').classList.add('on');
-  renderSheet(id);
-}
-function closeSheet() {
-  document.getElementById('ovUnit').classList.remove('on');
-  openId = null;
-}
-function renderSheet(id) {
-  const u = U(id); if (!u) return;
-  const s = document.getElementById('sheetUnit');
+function weaponBlockHTML(w,pickup){
+  const stats=[];
+  if(w.range) stats.push(`<span>RNG <b>${esc(w.range)}</b></span>`);
+  if(w.ap) stats.push(`<span>AP <b>${w.ap}</b></span>`);
+  if(w.dice!=null) stats.push(`<span>DICE <b>${w.dice}</b></span>`);
 
-  const gearRow = (item, picked) => `
-    <div class="li">${esc(item)}
-      ${picked ? `<span class="x" data-drop="${esc(item)}">×</span>` : ''}
-    </div>`;
+  const kws=(w.keywords||[]).map(k=>{
+    const strong=/lethal|explosive|suppression|sticky/i.test(k);
+    return `<i class="${strong?'strong':''}">${esc(k)}</i>`;
+  }).join('');
 
-  s.innerHTML = `
+  return `
+  <div class="wblock">
+    <div class="wname">
+      ${esc(w.name)}
+      ${pickup?'<span class="wtag pick">Picked up</span>':'<span class="wtag">Equipped</span>'}
+    </div>
+    ${stats.length?`<div class="wline">${stats.join('')}</div>`:''}
+    ${kws?`<div class="wkw">${kws}</div>`:''}
+  </div>`;
+}
+
+function itemBlockHTML(it,which,index,unitId){
+  const usesLeft=it.uses;
+  const dim=usesLeft<=0;
+  return `
+  <div class="iblock" style="${dim?'opacity:.35':''}">
+    <span class="itype ${it.type}">${it.type}</span>
+    <span class="iname">${esc(it.name)}</span>
+    <span class="iuses">${usesLeft}/${it.maxUses}</span>
+    <button class="btn ghost sm" data-use="${which}:${index}:${unitId}"
+            ${dim?'disabled':''} title="Spend a use">−1</button>
+    <span class="idrop" data-drop="${which}:${index}:${unitId}" title="Drop / discard">×</span>
+  </div>`;
+}
+
+/* ══════════════════ SHEET ══════════════════ */
+let openId=null;
+function openSheet(id){openId=id;document.getElementById('ovUnit').classList.add('on');renderSheet(id);}
+function closeSheet(){document.getElementById('ovUnit').classList.remove('on');openId=null;}
+
+function renderSheet(id){
+  const u=U(id);if(!u)return;
+  const s=document.getElementById('sheetUnit');
+
+  const statusChips=STATUSES.map(st=>{
+    const on=u.statuses.includes(st);
+    return `<span class="chip ${on?'pin':''}" data-st="${esc(st)}"
+      style="cursor:pointer;padding:6px 12px;font-size:12px;${on?'':'opacity:.55'}">${esc(st)}</span>`;
+  }).join('');
+
+  const weaponsHTML=(u.weapons||[]).map(w=>weaponBlockHTML(w,w.pickup)).join('')
+    ||'<div class="li" style="color:var(--dim)">No weapons listed</div>';
+
+  const itemsHTML=(u.items||[]).map((it,i)=>itemBlockHTML(it,'items',i,id)).join('')
+    ||'<div class="li" style="color:var(--dim)">No items</div>';
+
+  const pickedHTML=(u.picked||[]).map((it,i)=>itemBlockHTML(it,'picked',i,id)).join('')
+    ||'<div class="li" style="color:var(--dim)">Nothing picked up</div>';
+
+  s.innerHTML=`
     <div class="grab"></div>
     <h2>${esc(u.name)}</h2>
-    <div class="urole">${esc(u.role || 'Unit')}${u.keywords.length ? ' · ' + u.keywords.map(esc).join(', ') : ''}</div>
+    <div class="urole">${esc(u.role||'Unit')}${u.keywords.length?' · '+u.keywords.map(esc).join(', '):''}</div>
 
     <h3>Stats</h3>
     <div class="grid">
-      <div class="gcell"><div class="k">Health</div><div class="v" style="color:var(--dmg)">${u.health}</div></div>
-      <div class="gcell"><div class="k">Shield</div><div class="v" style="color:var(--shield)">${u.shields}</div></div>
-      <div class="gcell"><div class="k">Move</div><div class="v">${u.move ?? '–'}</div></div>
-      <div class="gcell"><div class="k">Shoot</div><div class="v">${u.shoot ?? '–'}</div></div>
-      <div class="gcell"><div class="k">Melee</div><div class="v">${u.melee ?? '–'}</div></div>
-      <div class="gcell"><div class="k">Defence</div><div class="v">${u.defence ?? '–'}</div></div>
-      <div class="gcell"><div class="k">Max HP</div><div class="v">${u.maxHealth}</div></div>
-      <div class="gcell"><div class="k">Max Sh</div><div class="v">${u.maxShields}</div></div>
+      <div class="gcell"><div class="k">Wounds</div><div class="v" style="color:var(--dmg)">${u.wounds}/${u.maxWounds}</div></div>
+      <div class="gcell"><div class="k">Shields</div><div class="v" style="color:var(--shield)">${u.shields}/${u.maxShields}</div></div>
+      <div class="gcell"><div class="k">Spd 1</div><div class="v">${u.speed1??'–'}</div></div>
+      <div class="gcell"><div class="k">Spd 2</div><div class="v">${u.speed2??'–'}</div></div>
+      <div class="gcell"><div class="k">Shoot</div><div class="v">${u.shoot??'–'}</div></div>
+      <div class="gcell"><div class="k">Fight</div><div class="v">${u.fight??'–'}</div></div>
+      <div class="gcell"><div class="k">Surv</div><div class="v">${u.survive??'–'}</div></div>
+      <div class="gcell"><div class="k">State</div><div class="v" style="font-size:12px">${u.offBoard?'Off':(u.activated?'Done':'Ready')}</div></div>
     </div>
 
     <h3>Damage</h3>
     <div style="display:flex;gap:7px;flex-wrap:wrap">
-      <button class="btn" data-sd="1">−1 HP</button>
-      <button class="btn" data-sd="2">−2 HP</button>
-      <button class="btn" data-sd="3">−3 HP</button>
-      <button class="btn" data-sh2="1">+1 Shield</button>
-      <button class="btn" data-sh2="-1">−1 Shield</button>
-      <button class="btn" data-sh2="99">Restore Shields</button>
-      <button class="btn" data-full="1">Full Heal</button>
+      <button class="btn sm" data-sd="1">−1 Wound</button>
+      <button class="btn sm" data-sd="2">−2 Wounds</button>
+      <button class="btn sm" data-sd="-1">+1 Wound</button>
+      <button class="btn sm" data-sh="1">+1 Shield</button>
+      <button class="btn sm" data-sh="-1">−1 Shield</button>
+      <button class="btn sm" data-full="1">Restore All</button>
     </div>
 
     <h3>Status</h3>
-    <div class="chips">
-      ${STATUSES.map(st => `
-        <span class="chip ${u.statuses.includes(st) ? 'st' : ''}" data-st="${esc(st)}"
-              style="cursor:pointer;padding:6px 12px;font-size:12px">${esc(st)}</span>`).join('')}
-    </div>
+    <div class="chips">${statusChips}</div>
 
     <h3>Weapons</h3>
-    <div class="list">${u.weapons.length ? u.weapons.map(w => `<div class="li">${esc(w)}</div>`).join('') : '<div class="li" style="color:var(--dim)">None listed</div>'}</div>
-
-    <h3>Starting Equipment</h3>
-    <div class="list">${u.equipment.length ? u.equipment.map(e => gearRow(e, false)).join('') : '<div class="li" style="color:var(--dim)">None</div>'}</div>
-
-    <h3>Picked Up This Game</h3>
-    <div class="list" id="pickList">${u.picked.length ? u.picked.map(e => gearRow(e, true)).join('') : '<div class="li" style="color:var(--dim)">Nothing yet</div>'}</div>
-    <div class="addrow">
-      <input id="pickInput" placeholder="e.g. Shotgun, Overshield…">
-      <button class="btn primary" id="pickAdd">Add</button>
+    ${weaponsHTML}
+    <div class="wform">
+      <div class="frow">
+        <input id="wName" placeholder="Weapon name">
+        <input id="wRange" placeholder="Range (R4)" style="flex:0 0 90px">
+      </div>
+      <div class="frow">
+        <input id="wDice" type="number" placeholder="Dice" style="flex:1">
+        <input id="wAp" type="number" placeholder="AP" style="flex:1">
+        <input id="wKw" placeholder="Keywords (comma sep)" style="flex:2">
+      </div>
+      <div class="frow">
+        <button class="btn primary sm" id="wAdd" style="flex:1">Add Weapon</button>
+      </div>
     </div>
 
-    ${u.notes ? `<h3>Notes</h3><div class="li">${esc(u.notes)}</div>` : ''}
+    <h3>Items Carried</h3>
+    ${itemsHTML}
+    <div class="wform">
+      <div class="frow">
+        <input id="iName" placeholder="Item name">
+        <select id="iType">
+          <option value="I">Type I</option>
+          <option value="II" selected>Type II</option>
+          <option value="III">Type III</option>
+        </select>
+      </div>
+      <div class="frow">
+        <input id="iUses" type="number" placeholder="Uses" value="1" style="flex:1">
+        <button class="btn primary sm" id="iAdd" style="flex:2">Add Item</button>
+      </div>
+    </div>
 
-    <div style="display:flex;gap:8px;margin-top:20px">
+    <h3>Picked Up This Game</h3>
+    ${pickedHTML}
+    <div class="wform">
+      <div class="frow">
+        <input id="pName" placeholder="Picked up item or weapon">
+        <select id="pType">
+          <option value="I">Type I</option>
+          <option value="II" selected>Type II</option>
+          <option value="III">Type III</option>
+        </select>
+      </div>
+      <div class="frow">
+        <input id="pUses" type="number" placeholder="Uses" value="1" style="flex:1">
+        <button class="btn primary sm" id="pAdd" style="flex:2">Add Pickup</button>
+      </div>
+    </div>
+
+    ${u.notes?`<h3>Notes</h3><div class="li">${esc(u.notes)}</div>`:''}
+
+    <div style="display:flex;gap:8px;margin-top:22px">
       <button class="btn ghost" style="flex:1" id="sheetClose">Close</button>
       <button class="btn" style="flex:1;color:var(--dmg)" id="sheetDel">Remove Unit</button>
     </div>
   `;
 
-  // wire sheet controls
-  s.querySelectorAll('[data-sd]').forEach(b => b.onclick = () => { damage(id, +b.dataset.sd); renderSheet(id); });
-  s.querySelectorAll('[data-sh2]').forEach(b => b.onclick = () => { shiftShield(id, +b.dataset.sh2); renderSheet(id); });
-  s.querySelectorAll('[data-full]').forEach(b => b.onclick = () => { const u2 = U(id); u2.health = u2.maxHealth; u2.shields = u2.maxShields; commit(); renderSheet(id); });
-  s.querySelectorAll('[data-st]').forEach(b => b.onclick = () => { toggleStatus(id, b.dataset.st); renderSheet(id); });
-  s.querySelectorAll('[data-drop]').forEach(b => b.onclick = () => dropPick(id, b.dataset.drop));
-  s.querySelector('#pickAdd').onclick = () => {
-    const inp = s.querySelector('#pickInput');
-    addPick(id, inp.value); inp.value = '';
+  // wire sheet
+  s.querySelectorAll('[data-sd]').forEach(b=>b.onclick=()=>{
+    const u2=U(id);
+    u2.wounds=Math.max(0,Math.min(u2.maxWounds,u2.wounds + (+b.dataset.sd>0?+b.dataset.sd:-1)));
+    if(+b.dataset.sd<0) u2.wounds=Math.max(0,u2.wounds-1);
+    commit();renderSheet(id);
+  });
+  // simpler explicit wound buttons
+  s.querySelectorAll('[data-sd]')[0].onclick=()=>{const x=U(id);x.wounds=Math.min(x.maxWounds,x.wounds+1);commit();renderSheet(id);};
+  s.querySelectorAll('[data-sd]')[1].onclick=()=>{const x=U(id);x.wounds=Math.min(x.maxWounds,x.wounds+2);commit();renderSheet(id);};
+  s.querySelectorAll('[data-sd]')[2].onclick=()=>{const x=U(id);x.wounds=Math.max(0,x.wounds-1);commit();renderSheet(id);};
+
+  s.querySelectorAll('[data-sh]').forEach(b=>b.onclick=()=>{
+    const x=U(id);x.shields=Math.max(0,Math.min(x.maxShields,x.shields + (+b.dataset.sh)));
+    commit();renderSheet(id);
+  });
+  s.querySelectorAll('[data-full]').forEach(b=>b.onclick=()=>{
+    const x=U(id);x.wounds=0;x.shields=x.maxShields;
+    x.items.forEach(it=>it.uses=it.maxUses);
+    commit();renderSheet(id);
+  });
+  s.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{toggleStatus(id,b.dataset.st);renderSheet(id);});
+  s.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>{
+    const [which,idx]=b.dataset.use.split(':');useItem(id,which,+idx);
+  });
+  s.querySelectorAll('[data-drop]').forEach(b=>b.onclick=()=>{
+    const [which,idx]=b.dataset.drop.split(':');dropItem(id,which,+idx);
+  });
+
+  // weapon add
+  s.querySelector('#wAdd').onclick=()=>{
+    const name=s.querySelector('#wName').value.trim();
+    if(!name)return toast('Weapon needs a name');
+    U(id).weapons.push({
+      name,
+      range:s.querySelector('#wRange').value.trim(),
+      dice:+s.querySelector('#wDice').value||null,
+      ap:+s.querySelector('#wAp').value||0,
+      keywords:s.querySelector('#wKw').value.split(',').map(x=>x.trim()).filter(Boolean),
+      pickup:false
+    });
+    commit();renderSheet(id);
   };
-  s.querySelector('#pickInput').onkeydown = e => {
-    if (e.key === 'Enter') { addPick(id, e.target.value); e.target.value = ''; }
+  // item add
+  s.querySelector('#iAdd').onclick=()=>{
+    const name=s.querySelector('#iName').value.trim();
+    if(!name)return toast('Item needs a name');
+    const uses=Math.max(1,+s.querySelector('#iUses').value||1);
+    U(id).items.push({name,type:s.querySelector('#iType').value,uses,maxUses:uses});
+    commit();renderSheet(id);
   };
-  s.querySelector('#sheetClose').onclick = closeSheet;
-  s.querySelector('#sheetDel').onclick = () => {
-    if (!confirm('Remove ' + U(id).name + '?')) return;
-    G.units = G.units.filter(u => u.id !== id);
-    commit(); closeSheet();
+  // pickup add
+  s.querySelector('#pAdd').onclick=()=>{
+    const name=s.querySelector('#pName').value.trim();
+    if(!name)return toast('Pickup needs a name');
+    const uses=Math.max(1,+s.querySelector('#pUses').value||1);
+    U(id).picked.push({name,type:s.querySelector('#pType').value,uses,maxUses:uses});
+    commit();renderSheet(id);
+  };
+
+  s.querySelector('#sheetClose').onclick=closeSheet;
+  s.querySelector('#sheetDel').onclick=()=>{
+    if(!confirm('Remove '+U(id).name+'?'))return;
+    G.units=G.units.filter(x=>x.id!==id);
+    commit();closeSheet();
   };
 }
 
 /* ══════════════════ IMPORT ══════════════════ */
-document.getElementById('bImport').onclick = () => {
-  document.getElementById('importText').value =
-    localStorage.getItem('flashpoint_last_json') || '';
+document.getElementById('bImport').onclick=()=>{
+  document.getElementById('importText').value=
+    localStorage.getItem('flashpoint_last_json')||'';
   document.getElementById('ovImport').classList.add('on');
 };
-document.getElementById('impCancel').onclick = () =>
+document.getElementById('impCancel').onclick=()=>
   document.getElementById('ovImport').classList.remove('on');
 
-document.getElementById('impGo').onclick = () => {
-  const txt = document.getElementById('importText').value.trim();
-  if (!txt) return toast('Paste some JSON first');
-  try {
-    const parsed = JSON.parse(txt);
-    const units = Array.isArray(parsed) ? parsed : (parsed.units || []);
-    if (!units.length) throw new Error('No "units" array found');
-
-    G = {
-      squadName: parsed.squadName || parsed.name || 'Imported Squad',
-      round: 1,
-      units: units.map(raw => ({
-        id: raw.id || uid(),
-        name: raw.name || 'Unnamed',
-        role: raw.role || '',
-        maxHealth: num(raw.maxHealth ?? raw.health, 1),
-        maxShields: num(raw.maxShields ?? raw.shields, 0),
-        health: num(raw.maxHealth ?? raw.health, 1),
-        shields: num(raw.maxShields ?? raw.shields, 0),
-        activated: false,
-        move: raw.move ?? null, shoot: raw.shoot ?? null,
-        melee: raw.melee ?? null, defence: raw.defence ?? null,
-        weapons: arr(raw.weapons),
-        equipment: arr(raw.equipment),
-        picked: [], statuses: [],
-        keywords: arr(raw.keywords),
-        notes: raw.notes || ''
+document.getElementById('impGo').onclick=()=>{
+  const txt=document.getElementById('importText').value.trim();
+  if(!txt)return toast('Paste some JSON first');
+  try{
+    const parsed=JSON.parse(txt);
+    const units=Array.isArray(parsed)?parsed:(parsed.units||[]);
+    if(!units.length)throw new Error('No "units" array found');
+    G={
+      squadName:parsed.squadName||parsed.name||'Imported Squad',
+      round:1,
+      commandDiceBase:num(parsed.commandDiceBase,2),
+      commandDice:[],
+      carriedOver:0,
+      units:units.map(raw=>({
+        id:raw.id||uid(),
+        name:raw.name||'Unnamed',
+        role:raw.role||'',
+        keywords:arr(raw.keywords),
+        maxWounds:num(raw.maxWounds??raw.wounds,3),
+        wounds:0,
+        maxShields:num(raw.maxShields??raw.shields,0),
+        shields:num(raw.maxShields??raw.shields,0),
+        speed1:raw.speed1??raw.move??null,
+        speed2:raw.speed2??null,
+        shoot:raw.shoot??null,
+        fight:raw.fight??raw.melee??null,
+        survive:raw.survive??null,
+        weapons:arr(raw.weapons).map(normWeapon),
+        items:arr(raw.items??raw.equipment).map(normItem),
+        picked:arr(raw.picked).map(normItem),
+        statuses:[],
+        activated:false,
+        offBoard:false,
+        notes:raw.notes||''
       }))
     };
-    localStorage.setItem('flashpoint_last_json', txt);
-    save(); render();
+    localStorage.setItem('flashpoint_last_json',txt);
+    refreshCommandDice();
+    save();render();
     document.getElementById('ovImport').classList.remove('on');
     toast(`Loaded ${G.units.length} units`);
-  } catch (e) {
-    toast('Invalid JSON: ' + e.message);
-  }
+  }catch(e){toast('Invalid JSON: '+e.message);}
 };
 
 /* ══════════════════ ADD UNIT ══════════════════ */
-document.getElementById('bAdd').onclick = () =>
+document.getElementById('bAdd').onclick=()=>
   document.getElementById('ovAdd').classList.add('on');
-document.getElementById('addCancel').onclick = () =>
+document.getElementById('addCancel').onclick=()=>
   document.getElementById('ovAdd').classList.remove('on');
-
-document.getElementById('addGo').onclick = () => {
-  const name = document.getElementById('nuName').value.trim() || 'New Unit';
-  const hp = Math.max(1, +document.getElementById('nuHp').value || 1);
-  const sh = Math.max(0, +document.getElementById('nuSh').value || 0);
+document.getElementById('addGo').onclick=()=>{
+  const name=document.getElementById('nuName').value.trim()||'New Unit';
+  const maxWounds=Math.max(1,+document.getElementById('nuW').value||1);
+  const maxShields=Math.max(0,+document.getElementById('nuSh').value||0);
   G.units.push({
-    id: uid(), name,
-    role: document.getElementById('nuRole').value.trim(),
-    maxHealth: hp, maxShields: sh, health: hp, shields: sh,
-    activated: false,
-    move: +document.getElementById('nuMv').value || null,
-    shoot: +document.getElementById('nuSh2').value || null,
-    melee: null, defence: null,
-    weapons: [], equipment: [], picked: [], statuses: [], keywords: [], notes: ''
+    id:uid(), name,
+    role:document.getElementById('nuRole').value.trim(),
+    keywords:document.getElementById('nuKw').value.split(',').map(x=>x.trim()).filter(Boolean),
+    maxWounds, wounds:0,
+    maxShields, shields:maxShields,
+    speed1:+document.getElementById('nuS1').value||null,
+    speed2:+document.getElementById('nuS2').value||null,
+    shoot:+document.getElementById('nuSh2').value||null,
+    fight:+document.getElementById('nuF').value||null,
+    survive:+document.getElementById('nuSv').value||null,
+    weapons:[], items:[], picked:[], statuses:[],
+    activated:false, offBoard:false, notes:''
   });
   commit();
   document.getElementById('ovAdd').classList.remove('on');
-  document.getElementById('nuName').value = '';
-  document.getElementById('nuRole').value = '';
+  document.getElementById('nuName').value='';
+  document.getElementById('nuRole').value='';
+  document.getElementById('nuKw').value='';
   toast('Unit added');
 };
 
 /* ══════════════════ HEADER ══════════════════ */
-document.getElementById('bNext').onclick = nextRound;
-document.getElementById('bReset').onclick = resetAll;
-
-document.querySelectorAll('.ov').forEach(ov => {
-  ov.onclick = e => { if (e.target === ov) ov.classList.remove('on'); };
+document.getElementById('bNext').onclick=nextRound;
+document.getElementById('bReset').onclick=resetAll;
+document.querySelectorAll('.ov').forEach(ov=>{
+  ov.onclick=e=>{if(e.target===ov)ov.classList.remove('on');};
 });
 
-/* ══════════════════ DEMO SEED ══════════════════ */
-function seedDemo() {
-  G.squadName = 'Blue Team';
-  G.units = [
-    { id:'s117', name:'Spartan-117', role:'Leader', maxHealth:3, maxShields:2,
-      health:3, shields:2, activated:false, move:6, shoot:3, melee:3, defence:4,
-      weapons:['MA5 Assault Rifle','M6 Magnum'], equipment:['Frag Grenade'],
-      picked:[], statuses:[], keywords:['Spartan','Shielded'], notes:'' },
-    { id:'s058', name:'Spartan-058', role:'Sharpshooter', maxHealth:3, maxShields:2,
-      health:3, shields:2, activated:false, move:5, shoot:4, melee:2, defence:3,
-      weapons:['SRS99 Sniper Rifle','M6 Magnum'], equipment:['Frag Grenade'],
-      picked:[], statuses:[], keywords:['Spartan','Shielded'], notes:'' },
-    { id:'odst1', name:'ODST Trooper', role:'Rifleman', maxHealth:2, maxShields:0,
-      health:2, shields:0, activated:false, move:5, shoot:3, melee:2, defence:3,
-      weapons:['MA5B Assault Rifle'], equipment:['Frag Grenade'],
-      picked:[], statuses:[], keywords:['ODST'], notes:'' }
+/* ══════════════════ SEED ══════════════════ */
+function seedDemo(){
+  G.squadName='Blue Team';
+  G.commandDiceBase=2;
+  G.units=[
+    {
+      id:'s117',name:'Spartan-117',role:'Leader',
+      keywords:['Spartan','Shielded','Tactician 1'],
+      maxWounds:3,wounds:0,maxShields:2,shields:2,
+      speed1:3,speed2:6,shoot:3,fight:3,survive:4,
+      weapons:[
+        {name:'MA5 Assault Rifle',range:'R4',ap:0,dice:3,keywords:['Weight of fire (1)'],pickup:false},
+        {name:'M6 Magnum',range:'R3',ap:1,dice:2,keywords:[],pickup:false}
+      ],
+      items:[
+        {name:'Frag Grenade',type:'III',uses:1,maxUses:1}
+      ],
+      picked:[],statuses:[],activated:false,offBoard:false,notes:''
+    },
+    {
+      id:'s058',name:'Spartan-058',role:'Sharpshooter',
+      keywords:['Spartan','Shielded'],
+      maxWounds:3,wounds:0,maxShields:2,shields:2,
+      speed1:3,speed2:5,shoot:4,fight:2,survive:3,
+      weapons:[
+        {name:'SRS99 Sniper Rifle',range:'R6',ap:2,dice:3,keywords:['Lethal (1)','Piercing'],pickup:false},
+        {name:'M6 Magnum',range:'R3',ap:1,dice:2,keywords:[],pickup:false}
+      ],
+      items:[
+        {name:'Frag Grenade',type:'III',uses:1,maxUses:1}
+      ],
+      picked:[],statuses:[],activated:false,offBoard:false,notes:''
+    },
+    {
+      id:'odst1',name:'ODST Trooper',role:'Rifleman',
+      keywords:['ODST'],
+      maxWounds:2,wounds:0,maxShields:0,shields:0,
+      speed1:3,speed2:5,shoot:3,fight:2,survive:3,
+      weapons:[
+        {name:'MA5B Assault Rifle',range:'R3',ap:0,dice:3,keywords:[],pickup:false}
+      ],
+      items:[
+        {name:'Frag Grenade',type:'III',uses:1,maxUses:1}
+      ],
+      picked:[],statuses:[],activated:false,offBoard:false,notes:''
+    }
   ];
+  refreshCommandDice();
   save();
 }
 
 /* ══════════════════ UTIL ══════════════════ */
-function esc(s) {
-  return String(s).replace(/[&<>"']/g, c =>
+function esc(s){
+  return String(s).replace(/[&<>"']/g,c=>
     ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
